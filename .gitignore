@@ -1,0 +1,17 @@
+.vs
+.idea
+
+
+build
+out
+build_result
+subproject
+package
+.runtime
+
+CMakeSettings.json
+*.pdb
+
+# output files
+.output
+.main_cache
