@@ -221,7 +221,7 @@ yolo_box_list_batch_t get_yolo_boxes(
     {
         if(output_layer.params.new_coords)
         {
-            throw std::exception("Not implemented get_yolo_boxes for new coord");
+            throw std::runtime_error("Not implemented get_yolo_boxes for new coord");
         }
     }
 

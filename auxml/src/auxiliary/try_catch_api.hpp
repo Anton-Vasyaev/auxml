@@ -77,4 +77,4 @@
         status.error_message = (char*)"Total fatal error. Cannot construct message of return_status for API.";          \
         status.is_const_message = 1;                                                                                    \
         return status;                                                                                                  \
-    }                                                                                                                   \
+    }                                                                                                                  

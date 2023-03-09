@@ -8,5 +8,5 @@
 
 
 #ifdef CALLISTO_OS_FAMILY_UNIX
-    #define CALLISTO_PYTHON_CALL __cdecl
+    #define CALLISTO_PYTHON_CALL __attribute__((__cdecl__))
 #endif
