@@ -42,4 +42,6 @@ target_include_directories(${TARGET_NAME} PRIVATE src)
 find_package(Callisto)
 find_package(Boost)
 
+target_link_libraries(${TARGET_NAME} PUBLIC Boost::headers)
 target_link_libraries(${TARGET_NAME} PUBLIC Callisto::framework)
+target_link_libraries(${TARGET_NAME} PUBLIC Callisto::math)

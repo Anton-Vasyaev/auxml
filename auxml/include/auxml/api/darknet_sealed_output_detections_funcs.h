@@ -11,11 +11,13 @@
 
 #include "auxml/auxiliary/call.h"
 
-extern "C" CALLISTO_EXPORT return_status CALLISTO_PYTHON_CALL process_yolo_detections(
-    yolo_output*    output_layers,
-    uint64_t        outputs_count,
-    net_params      params,
+extern "C" CALLISTO_EXPORT return_status CALLISTO_PYTHON_CALL
+process_darknet_sealed_output_detections(
+    float*          darknet_output,
+    int64_t         boxes_count,
+    int64_t         batch_size,
+    int32_t         classes_count,
     float           object_threshold,
     float           nms_threshold,
-    object_handler* detections_batch_handler // RETURN output type detections_batch_type
+    object_handler* detections_batch_handler // RETURN
 );

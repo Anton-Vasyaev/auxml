@@ -45,16 +45,17 @@ struct bbox
 
 inline float sigmoid(float value) { return 1.0f / (1.0f + std::exp(-value)); }
 
-inline float sigmoid_scale_x_y(float value, float scale_x_y)
+inline float func_scale_x_y(float value, float scale_x_y)
 {
-    return sigmoid(value) * scale_x_y - 0.5f * (scale_x_y - 1.0f);
+    return value * scale_x_y - 0.5f * (scale_x_y - 1.0f);
 }
 
 void activate_yolo_output(
     output_tensor batch_yolo_output,
     int32_t       mask_count,
     int32_t       classes_count,
-    float         scale_x_y
+    float         scale_x_y,
+    bool          new_coords
 )
 {
     auto b = batch_yolo_output.batch;
@@ -69,22 +70,37 @@ void activate_yolo_output(
 
     auto total_masks = b * h * w * mask_count;
 
-    for (size_t mask_i = 0; mask_i < total_masks; mask_i++)
+    if (new_coords)
     {
-        // activate and scale x, y
-        output_cursor[0] = sigmoid_scale_x_y(output_cursor[0], scale_x_y);
-        output_cursor[1] = sigmoid_scale_x_y(output_cursor[1], scale_x_y);
-
-        for (size_t activate_i = 4; activate_i < 5 + classes_count; activate_i++)
+        for (size_t mask_i = 0; mask_i < total_masks; mask_i++)
         {
-            output_cursor[activate_i] = sigmoid(output_cursor[activate_i]);
-        }
+            // scale x, y
+            output_cursor[0] = func_scale_x_y(output_cursor[0], scale_x_y);
+            output_cursor[1] = func_scale_x_y(output_cursor[1], scale_x_y);
 
-        output_cursor += mask_size;
+            output_cursor += mask_size;
+        }
+    }
+    else
+    {
+        for (size_t mask_i = 0; mask_i < total_masks; mask_i++)
+        {
+            // activate and scale x, y
+            output_cursor[0] = func_scale_x_y(sigmoid(output_cursor[0]), scale_x_y);
+            output_cursor[1] = func_scale_x_y(sigmoid(output_cursor[1]), scale_x_y);
+
+            // activate probabilities
+            for (size_t activate_i = 4; activate_i < 5 + classes_count; activate_i++)
+            {
+                output_cursor[activate_i] = sigmoid(output_cursor[activate_i]);
+            }
+
+            output_cursor += mask_size;
+        }
     }
 }
 
-yolo_box_list_batch_t get_yolo_boxes_standard(
+yolo_box_list_batch_t get_yolo_boxes(
     std::vector<yolo_output>& output_layers,
     int32_t                   classes_count,
     int32_t                   net_width,
@@ -170,8 +186,16 @@ yolo_box_list_batch_t get_yolo_boxes_standard(
                         x = (w_i + x) / out_w;
                         y = (h_i + y) / out_h;
 
-                        w = std::exp(w) * w_anchor / net_width;
-                        h = std::exp(h) * h_anchor / net_height;
+                        if (output_layer.params.new_coords)
+                        {
+                            w = w * w * 4 * w_anchor / net_width;
+                            h = h * h * 4 * h_anchor / net_height;
+                        }
+                        else
+                        {
+                            w = std::exp(w) * w_anchor / net_width;
+                            h = std::exp(h) * h_anchor / net_height;
+                        }
 
                         auto x1 = x - w / 2.0f;
                         auto y1 = y - h / 2.0f;
@@ -197,32 +221,6 @@ yolo_box_list_batch_t get_yolo_boxes_standard(
     }
 
     return boxes_batch;
-}
-
-yolo_box_list_batch_t get_yolo_boxes(
-    std::vector<yolo_output>& output_layers,
-    int32_t                   classes_count,
-    int32_t                   net_width,
-    int32_t                   net_height,
-    float                     obj_conf_threshold
-)
-{
-    // validate layers
-    for (auto& output_layer : output_layers)
-    {
-        if (output_layer.params.new_coords)
-        {
-            throw std::runtime_error("Not implemented get_yolo_boxes for new coord");
-        }
-    }
-
-    return get_yolo_boxes_standard(
-        output_layers,
-        classes_count,
-        net_width,
-        net_height,
-        obj_conf_threshold
-    );
 }
 
 void descending_sort_yolo_boxes(
@@ -342,7 +340,8 @@ detections_batch_type process_yolo_detections(
             output_layer.output,
             params.mask.size,
             params.classes,
-            params.scale_x_y
+            params.scale_x_y,
+            params.new_coords
         );
     }
 

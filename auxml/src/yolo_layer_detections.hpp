@@ -10,9 +10,9 @@ namespace auxml
 
 detections_batch_type process_yolo_detections(
     yolo_output* output_layers,
-    uint64_t outputs_count,
-    net_params params,
-    float object_threshold,
-    float nms_threshold
+    uint64_t     outputs_count,
+    net_params   params,
+    float        object_threshold,
+    float        nms_threshold
 );
 }

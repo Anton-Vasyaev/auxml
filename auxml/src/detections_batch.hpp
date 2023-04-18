@@ -12,4 +12,4 @@ using detections_type = std::vector<object_detection>;
 
 using detections_batch_type = std::vector<detections_type>;
 
-}
+} // namespace auxml
