@@ -12,7 +12,7 @@ detections_batch_type process_yolo_detections(
     yolo_output* output_layers,
     uint64_t     outputs_count,
     net_params   params,
-    float        object_threshold,
-    float        nms_threshold
+    float*       object_thresholds,
+    float*       nms_thresholds
 );
 }

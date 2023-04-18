@@ -15,7 +15,7 @@ extern "C" CALLISTO_EXPORT return_status CALLISTO_PYTHON_CALL process_yolo_detec
     yolo_output*    output_layers,
     uint64_t        outputs_count,
     net_params      params,
-    float           object_threshold,
-    float           nms_threshold,
+    float*          object_thresholds,
+    float*          nms_thresholds,
     object_handler* detections_batch_handler // RETURN output type detections_batch_type
 );

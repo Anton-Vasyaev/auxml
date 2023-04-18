@@ -105,7 +105,7 @@ yolo_box_list_batch_t get_yolo_boxes(
     int32_t                   classes_count,
     int32_t                   net_width,
     int32_t                   net_height,
-    float                     obj_conf_threshold
+    float*                    obj_conf_thresholds
 )
 {
     auto mask_size = (5 + classes_count);
@@ -151,6 +151,8 @@ yolo_box_list_batch_t get_yolo_boxes(
 
         for (size_t b_i = 0; b_i < batch_size; b_i++)
         {
+            auto current_obj_threshold = obj_conf_thresholds[b_i];
+
             auto& current_box_list = boxes_batch[b_i];
 
             for (size_t h_i = 0; h_i < out_h; h_i++)
@@ -174,13 +176,13 @@ yolo_box_list_batch_t get_yolo_boxes(
                         auto obj_conf = batch_cursor[4];
 
                         // objc_conf < obj_conf_threshold incorrect behavior for NaN values
-                        if (!(obj_conf > obj_conf_threshold)) { continue; }
+                        if (!(obj_conf > current_obj_threshold)) { continue; }
 
                         for (size_t class_i = 5; class_i < mask_size; class_i++)
                         {
                             auto class_prob       = batch_cursor[class_i];
                             auto prob             = obj_conf * class_prob;
-                            batch_cursor[class_i] = prob > obj_conf_threshold ? prob : 0.0f;
+                            batch_cursor[class_i] = prob > current_obj_threshold ? prob : 0.0f;
                         }
 
                         x = (w_i + x) / out_w;
@@ -253,11 +255,15 @@ void descending_sort_yolo_boxes(
     }
 }
 
-void do_nms_sort(yolo_box_list_batch_t& boxes_batch, int32_t classes_count, float nms_threshold)
+void do_nms_sort(yolo_box_list_batch_t& boxes_batch, int32_t classes_count, float* nms_thresholds)
 {
     auto mask_size = 5 + classes_count;
-    for (auto& yolo_boxes : boxes_batch)
+
+    for (size_t batch_i = 0; batch_i < boxes_batch.size(); batch_i++)
     {
+        auto& yolo_boxes            = boxes_batch[batch_i];
+        auto  current_nms_threshold = nms_thresholds[batch_i];
+
         if (yolo_boxes.size() == 0) continue;
 
         for (int32_t class_idx = 0; class_idx < classes_count; class_idx++)
@@ -285,7 +291,7 @@ void do_nms_sort(yolo_box_list_batch_t& boxes_batch, int32_t classes_count, floa
                     auto curr_box
                         = bbox { curr_cursor[0], curr_cursor[1], curr_cursor[2], curr_cursor[3] };
 
-                    if (main_box.iou(curr_box) >= nms_threshold)
+                    if (main_box.iou(curr_box) >= current_nms_threshold)
                     {
                         curr_cursor[5 + class_idx] = 0.0f;
                     }
@@ -299,8 +305,8 @@ detections_batch_type process_yolo_detections(
     yolo_output* output_layers,
     uint64_t     outputs_count,
     net_params   params,
-    float        object_threshold,
-    float        nms_threshold
+    float*       object_thresholds,
+    float*       nms_thresholds
 )
 {
     auto classes_count = output_layers[0].params.classes;
@@ -351,11 +357,11 @@ detections_batch_type process_yolo_detections(
         classes_count,
         params.width,
         params.height,
-        object_threshold
+        object_thresholds
     );
 
     // non maximum supression processing
-    do_nms_sort(boxes_batch, classes_count, nms_threshold);
+    do_nms_sort(boxes_batch, classes_count, nms_thresholds);
 
     detections_batch_type object_detection_batch;
 
