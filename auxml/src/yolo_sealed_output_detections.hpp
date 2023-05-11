@@ -8,13 +8,15 @@
 namespace auxml
 {
 
-detections_batch_type process_darknet_sealed_output_detections(
+detections_batch_type process_yolo_sealed_output_detections(
     float*  darknet_output,
     int64_t boxes_count,
     int64_t batch_size,
     int32_t classes_count,
-    float   object_threshold,
-    float   nms_threshold
+    float*  object_thresholds,
+    float*  nms_thresholds,
+    int32_t net_width,
+    int32_t net_height
 );
 
 }

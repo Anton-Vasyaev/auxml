@@ -23,9 +23,11 @@ public:
     inline darknet_box_provider(float* data_ptr, uint32_t classes_count);
 
     // methods
-    double iou(const darknet_box_provider& provider);
+    c_m::bbox2<float> get_bbox() const noexcept;
 
-    double iom(const darknet_box_provider& provider);
+    double iou(const darknet_box_provider& provider) const noexcept;
+
+    double iom(const darknet_box_provider& provider) const noexcept;
 
     // getters and setters
     inline float& x_c() noexcept;
@@ -65,38 +67,28 @@ inline darknet_box_provider::darknet_box_provider(float* data_ptr, uint32_t clas
 
 #pragma region methods
 
-double darknet_box_provider::iou(const darknet_box_provider& provider)
+c_m::bbox2<float> darknet_box_provider::get_bbox() const noexcept
 {
-    auto box1 = c_m::bbox2(
-        x_c() - width() / 2.0,
-        y_c() - width() / 2.0,
-        x_c() + width() / 2.0,
-        y_c() + height() / 2.0
+    return c_m::bbox2f(
+        x_c() - width() / 2.0f,
+        y_c() - height() / 2.0f,
+        x_c() + width() / 2.0f,
+        y_c() + height() / 2.0f
     );
-    auto box2 = c_m::bbox2(
-        provider.x_c() - provider.width() / 2.0,
-        provider.y_c() - provider.height() / 2.0,
-        provider.x_c() + provider.width() / 2.0,
-        provider.y_c() + provider.height() / 2.0
-    );
+}
+
+double darknet_box_provider::iou(const darknet_box_provider& provider) const noexcept
+{
+    auto box1 = get_bbox();
+    auto box2 = provider.get_bbox();
 
     return c_m::bbox2op_can::iou(box1, box2);
 }
 
-double darknet_box_provider::iom(const darknet_box_provider& provider)
+double darknet_box_provider::iom(const darknet_box_provider& provider) const noexcept
 {
-    auto box1 = c_m::bbox2(
-        x_c() - width() / 2.0,
-        y_c() - width() / 2.0,
-        x_c() + width() / 2.0,
-        y_c() + height() / 2.0
-    );
-    auto box2 = c_m::bbox2(
-        provider.x_c() - provider.width() / 2.0,
-        provider.y_c() - provider.height() / 2.0,
-        provider.x_c() + provider.width() / 2.0,
-        provider.y_c() + provider.height() / 2.0
-    );
+    auto box1 = get_bbox();
+    auto box2 = provider.get_bbox();
 
     return c_m::bbox2op_can::iom(box1, box2);
 }
