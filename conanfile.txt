@@ -3,6 +3,8 @@ callisto/0.1.1
 
 [options]
 callisto:shared = False
+callisto:build_opencv = False
+callisto:build_graphics = False
 
 [generators]
 cmake
