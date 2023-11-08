@@ -138,6 +138,7 @@ detections_batch_type process_yolo_sealed_output_detections(
                     .y1 = (darknet_box.y_c() - darknet_box.height() / 2.0f) / net_height,
                     .x2 = (darknet_box.x_c() + darknet_box.width() / 2.0f) / net_width,
                     .y2 = (darknet_box.y_c() + darknet_box.height() / 2.0f) / net_height,
+                    .class_id = static_cast<int32_t>(class_idx),
                     .object_confidence = darknet_box.object_confidence(),
                     .class_confidence  = class_prob });
             }
