@@ -13,10 +13,10 @@ struct bbox2op_can
     template<typename bbox1_type, typename bbox2_type>
     inline static constexpr double iou(const bbox1_type& box1, const bbox2_type& box2)
     {
-        auto l = max(box1.x1, box2.x1);
-        auto r = min(box1.x2, box2.x2);
-        auto t = max(box1.y1, box2.y1);
-        auto b = min(box1.y2, box2.y2);
+        auto l = max_f(box1.x1, box2.x1);
+        auto r = min_f(box1.x2, box2.x2);
+        auto t = max_f(box1.y1, box2.y1);
+        auto b = min_f(box1.y2, box2.y2);
 
         if (l >= r || t >= b) return 0.0;
 
@@ -34,17 +34,17 @@ struct bbox2op_can
     template<typename bbox1_type, typename bbox2_type>
     inline static constexpr double iom(const bbox1_type& box1, const bbox2_type& box2)
     {
-        auto l = max(box1.x1, box2.x1);
-        auto r = min(box1.x2, box2.x2);
-        auto t = max(box1.y1, box2.y1);
-        auto b = min(box1.y2, box2.y2);
+        auto l = max_f(box1.x1, box2.x1);
+        auto r = min_f(box1.x2, box2.x2);
+        auto t = max_f(box1.y1, box2.y1);
+        auto b = min_f(box1.y2, box2.y2);
 
         if (l >= r || t >= b) return 0.0;
 
         auto area1 = box1.area();
         auto area2 = box2.area();
 
-        auto min_area = min(area1, area2);
+        auto min_area = min_f(area1, area2);
 
         auto inter_bbox = bbox2(l, t, r, b);
         auto inter_area = inter_bbox.area();
